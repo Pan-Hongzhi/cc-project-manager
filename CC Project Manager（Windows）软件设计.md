@@ -154,7 +154,7 @@ UsageStat {
 }
 
 EncodingSelfCheck {
-  total_entries, entries_with_dir, matched_by_current_rule, matched_by_legacy_rule, unmatched: List<String>
+  total_entries, matched_by_current_rule, matched_by_legacy_rule, unmatched: List<String>   // unmatched = 两种规则都无法解释的 projects/ 子目录
   migration_enabled: bool          // = unmatched.is_empty()
 }
 
@@ -185,7 +185,7 @@ load_projects(root) -> (List<Project>, EncodingSelfCheck)
 2. 当前编码规则（F3）：对规范化后的字符串逐字符处理，凡不在 `[A-Za-z0-9-]` 内的字符替换为 `-`。
 3. 旧编码规则（F4）：同上，但 `_` 保留。
 4. 匹配流程：对每个配置 key **同时**计算当前编码与旧编码。当前编码命中 `projects/` 目录 → 归属；旧编码（与当前编码不同时）命中的目录标记 `LegacyEncoded` 并记录其「疑似所属项目」——**无论当前编码是否命中都要做这一步**（实测 F4：同一项目可同时存在新目录与旧编码残留目录，M1 实现时曾因只在当前规则未命中时才试旧规则而误把残留目录判为无主，导致自校验失败）。当前编码未命中且真实路径存在 → `ConfigOnly`。剩余目录 → `Unowned`。真实路径不存在的配置项 → `Orphan`（优先级高于其他状态）。
-5. 自校验：只对「配置项对应的目录确实存在于 `projects/`」的子集统计匹配率。判定标准：**任何一个有数据目录的配置项无法用当前规则匹配 → `migration_enabled = false`**。理由：迁移会按当前规则生成新目录名，规则错一处就可能把数据挪到 CC 找不到的地方。判定结果与未匹配清单在 UI「诊断」页展示。
+5. 自校验：判定标准（**2026-09-22 M1 实现时定稿**）：`projects/` 下存在**当前规则与旧规则都无法解释**的目录 → `migration_enabled = false`。只被旧规则解释的目录（旧编码残留）**不**禁用迁移——它恰恰是迁移要修的对象，且其归属已经确定。理由：迁移会按当前规则生成新目录名，若出现两种规则都解释不了的目录，说明官方编码规则可能又变了，规则错一处就可能把数据挪到 CC 找不到的地方。判定结果与未匹配清单在 UI「诊断」页展示。
 6. 真实路径存在性检查：对 UNC 路径与网络盘符（本机有 `Y:`、`Z:` 和 `//192.168.1.10/...`）设置 2 s 超时，超时视为 `Unreachable` 而非 `Orphan`，标签显示为「路径不可达」【D-4】。
 
 **错误与边界**
@@ -248,7 +248,8 @@ simulate_cleanup(result, cleanup_days) -> CleanupPreview
 
 | Category | 匹配规则 | 保留策略 | 工具可删 |
 | --- | --- | --- | --- |
-| Transcripts | `projects/<dir>/*.jsonl`、`projects/<dir>/subagents/**`、`projects/<dir>/tool-results/**` | Auto30d | ✓（第 6.6 节方式）【D-6】 |
+| Transcripts | `projects/<dir>/**/*.jsonl`、`projects/<dir>/**/subagents/**`、`projects/<dir>/**/tool-results/**`（**实测 2026-09-22**：子代理转录与工具结果嵌套在 `projects/<dir>/<sessionId>/` 之下，不在项目目录一级；分类按完整相对路径判断） | Auto30d | ✓（第 6.6 节方式）【D-6】 |
+| Unknown（项目内） | `projects/<dir>/` 下不属于以上任何类别的文件，合并为**单一**类别 `projects/其他`（不得按目录名逐个生成类别，避免随会话数无限增长） | Unknown | ✗ |
 | AutoMemory | `projects/<dir>/memory/**` | MemoryRule | ✗（第一版不开放） |
 | FileHistory | `file-history/**` | Auto30d | ✗（第一版仅展示） |
 | PasteCache / Uploads / Debug / Plans / Tasks / SessionEnv | 同名顶层目录 | Auto30d | ✗（第一版仅展示） |
