@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { NDescriptions, NDescriptionsItem, NTable, NTag, NButton, NDivider, NText, NAlert } from "naive-ui";
+import { NDescriptions, NDescriptionsItem, NTable, NTag, NButton, NDivider, NText, NAlert, useMessage } from "naive-ui";
 import { api } from "../api";
 import { useOverviewStore } from "../stores/overview";
 import { verifiedLabel } from "../labels";
 import { formatDateTime } from "../utils/format";
 
 const store = useOverviewStore();
+const message = useMessage();
 const ov = computed(() => store.overview);
+async function openToolDataDir() {
+  try { await api.openToolDataDir(); } catch (e) { message.error(String(e)); }
+}
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const ov = computed(() => store.overview);
         <template v-if="ov.cli">{{ ov.cli.path }}（{{ ov.cli.kind }}，{{ ov.cli.version ?? "版本未知" }}）</template>
         <NText v-else type="error">未找到。删除功能（后续版本）将不可用。</NText>
       </NDescriptionsItem>
-      <NDescriptionsItem label="工具自身数据目录">{{ ov.tool_data_dir }} <NButton size="tiny" @click="api.openToolDataDir()">打开</NButton></NDescriptionsItem>
+      <NDescriptionsItem label="工具自身数据目录">{{ ov.tool_data_dir }} <NButton size="tiny" @click="openToolDataDir">打开</NButton></NDescriptionsItem>
       <NDescriptionsItem label="视图生成时间">{{ formatDateTime(ov.generated_at_ms) }}</NDescriptionsItem>
     </NDescriptions>
 

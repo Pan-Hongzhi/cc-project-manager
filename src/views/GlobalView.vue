@@ -22,6 +22,9 @@ const retentionText = (key: string, kind: string) => {
 async function openInsights() {
   try { await api.openInsights(); } catch (e) { message.error(String(e)); }
 }
+async function openDataRoot() {
+  try { await api.openPath(ov.value!.root.root); } catch (e) { message.error(String(e)); }
+}
 </script>
 
 <template>
@@ -79,7 +82,7 @@ async function openInsights() {
     <NText depth="3" style="font-size: 12px; display: block; margin: 4px 0 8px">第一版只展示 token 数，不换算金额。</NText>
     <NSpace>
       <NButton size="small" @click="openInsights">打开 /insights 报告</NButton>
-      <NButton size="small" @click="api.openPath(ov!.root.root)" :disabled="!ov">打开数据根目录</NButton>
+      <NButton size="small" @click="openDataRoot" :disabled="!ov">打开数据根目录</NButton>
     </NSpace>
   </div>
 </template>
