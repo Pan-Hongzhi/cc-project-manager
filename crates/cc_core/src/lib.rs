@@ -6,6 +6,7 @@ pub mod discovery;
 pub mod encoding;
 pub mod model;
 pub mod paths;
+pub mod sessions;
 
 #[cfg(test)]
 mod smoke {
