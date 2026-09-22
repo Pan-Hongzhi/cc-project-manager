@@ -76,6 +76,9 @@ fn full_refresh_assembles_everything_and_quick_overview_reuses_cache() {
     let p2 = quick.projects.iter().find(|p| p.id == key).unwrap();
     assert!(p2.running.is_none(), "进程探测说没进程 → 不算运行中");
     assert!(p2.size.is_some(), "quick 视图也带上次扫描的体积");
+    let u2 = p2.usage.as_ref().expect("cached path must still report usage");
+    assert_eq!(u2.session_count, 1, "会话数必须从扫描缓存带出，不能因重启变成 0");
+    assert_eq!(u2.input, 42);
 }
 
 #[test]
@@ -97,6 +100,7 @@ fn cache_helpers_roundtrip_and_reject_wrong_schema() {
     use cc_core::scan::ScanCache;
     let d = tempfile::tempdir().unwrap();
     let p = d.path().join("nested").join("scan.json");
+    save_json(&p, &ScanCache::default()).unwrap();
     save_json(&p, &ScanCache::default()).unwrap();
     assert!(load_json::<ScanCache>(&p, cc_core::scan::SCAN_SCHEMA_VERSION).is_some());
     assert!(load_json::<ScanCache>(&p, 99).is_none());

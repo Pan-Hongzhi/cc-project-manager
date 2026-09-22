@@ -129,9 +129,8 @@ impl Engine {
                             total.add(&e.stat);
                         }
                     }
-                    if total.message_count > 0 {
-                        p.usage = Some(total);
-                    }
+                    total.session_count = s.per_project.get(enc).map(|ps| ps.session_count).unwrap_or(0);
+                    p.usage = Some(total);
                 }
             }
         }

@@ -59,6 +59,8 @@ fn scans_projects_and_top_level_categories() {
     f.project_file("C--a", "memory/MEMORY.md", "l1\nl2\nl3\n");
     f.project_file("C--a", "memory/topic.md", "xx");
     f.project_file("C--a", "weird/file.bin", "z");
+    f.project_file("C--a", "11111111-2222-3333-4444-555555555555/subagents/agent-1.jsonl", "0123456789"); // 10 B
+    f.project_file("C--a", "11111111-2222-3333-4444-555555555555/tool-results/r.txt", "abc"); // 3 B
     f.top_file("file-history/sess/abc@v1", &[0u8; 100]);
     f.top_file("history.jsonl", &[0u8; 7]);
     f.top_file("plugins/p/a.js", &[0u8; 3]);
@@ -70,22 +72,22 @@ fn scans_projects_and_top_level_categories() {
     let r = scan(f.path(), &mut cache, cc_core::scan::now_ms(), &mut |_| progress_calls += 1);
 
     let a = &r.per_project["C--a"];
-    assert_eq!(bytes_of(&a.size.by_category, &Category::Transcripts), 15);
+    assert_eq!(bytes_of(&a.size.by_category, &Category::Transcripts), 28);
     assert_eq!(bytes_of(&a.size.by_category, &Category::AutoMemory), 11);
-    assert_eq!(bytes_of(&a.size.by_category, &Category::Unknown("projects/weird".into())), 1);
-    assert_eq!(a.size.total_bytes, 27);
+    assert_eq!(bytes_of(&a.size.by_category, &Category::Unknown("projects/其他".into())), 1);
+    assert_eq!(a.size.total_bytes, 40);
     assert_eq!(a.session_count, 1, "只数顶层 .jsonl");
     assert_eq!(a.memory_file_count, 2);
     assert_eq!(a.memory_md_lines, Some(3));
     let t1_mtime = cc_core::scan::mtime_ms(&fs::metadata(&t1).unwrap()).unwrap();
     assert!(a.last_active_ms.unwrap() >= t1_mtime, "活跃时间 = 转录 mtime 最大值");
 
-    assert_eq!(bytes_of(&r.global, &Category::Transcripts), 15);
+    assert_eq!(bytes_of(&r.global, &Category::Transcripts), 28);
     assert_eq!(bytes_of(&r.global, &Category::FileHistory), 100);
     assert_eq!(bytes_of(&r.global, &Category::HistoryLog), 7);
     assert_eq!(bytes_of(&r.global, &Category::Protected("plugins".into())), 3);
     assert_eq!(bytes_of(&r.global, &Category::Unknown("mystery".into())), 11);
-    assert_eq!(r.root_total_bytes, 27 + 100 + 7 + 3 + 11);
+    assert_eq!(r.root_total_bytes, 40 + 100 + 7 + 3 + 11);
     assert!(progress_calls >= 5);
     assert!(cache.last_result.is_some());
     assert!(cache.top_level.contains_key("file-history"));
@@ -113,18 +115,19 @@ fn cleanup_simulation_counts_only_old_auto_cleanup_files() {
     let old_fh = f.top_file("file-history/s/old@v1", &[0u8; 50]);
     f.top_file("file-history/s/new@v1", &[0u8; 60]);
     let old_tr = f.project_file("C--a", "old.jsonl", "0123456789");
+    let old_nested = f.project_file("C--a", "11111111-2222-3333-4444-555555555555/subagents/agent.jsonl", "01234");
     let old_mem = f.project_file("C--a", "memory/MEMORY.md", "keep me forever");
     let old_hist = f.top_file("history.jsonl", &[0u8; 70]);
     let day = 86_400_000u64;
-    for p in [&old_fh, &old_tr, &old_mem, &old_hist] {
+    for p in [&old_fh, &old_tr, &old_nested, &old_mem, &old_hist] {
         set_mtime(p, 40 * day);
     }
     let now = cc_core::scan::now_ms();
     let pv = simulate_cleanup(f.path(), 30, now);
-    assert_eq!(pv.files, 2);
-    assert_eq!(pv.bytes, 60);
+    assert_eq!(pv.files, 3);
+    assert_eq!(pv.bytes, 65);
     assert_eq!(bytes_of(&pv.by_category, &Category::FileHistory), 50);
-    assert_eq!(bytes_of(&pv.by_category, &Category::Transcripts), 10);
+    assert_eq!(bytes_of(&pv.by_category, &Category::Transcripts), 15);
     assert_eq!(bytes_of(&pv.by_category, &Category::AutoMemory), 0);
     assert_eq!(bytes_of(&pv.by_category, &Category::HistoryLog), 0);
 }

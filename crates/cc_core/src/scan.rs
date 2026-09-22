@@ -56,14 +56,22 @@ pub fn classify_top_level(name: &str) -> Category {
     }
 }
 
-/// projects/<dir>/ 内部：memory/ → AutoMemory；.jsonl、subagents/、tool-results/ → Transcripts；其他 → Unknown
-fn classify_in_project(first_component: &str, is_jsonl: bool) -> Category {
-    match first_component {
-        "memory" => Category::AutoMemory,
-        "subagents" | "tool-results" => Category::Transcripts,
-        _ if is_jsonl => Category::Transcripts,
-        other => Category::Unknown(format!("projects/{other}")),
+/// projects/<dir>/ 内部：memory/ → AutoMemory；任意层级下 subagents/、tool-results/、.jsonl → Transcripts；
+/// 其他一律归入单一、有界的 Unknown("projects/其他") 桶，不按目录名（如 <sessionUuid>）各开一个类别。
+fn classify_in_project(rel: &Path, is_jsonl: bool) -> Category {
+    if first_component(rel) == "memory" {
+        return Category::AutoMemory;
     }
+    if rel.components().any(|c| {
+        let s = c.as_os_str().to_string_lossy();
+        s == "subagents" || s == "tool-results"
+    }) {
+        return Category::Transcripts;
+    }
+    if is_jsonl {
+        return Category::Transcripts;
+    }
+    Category::Unknown("projects/其他".to_string())
 }
 
 pub fn category_meta(cat: &Category, cleanup_days: u32) -> CategoryMeta {
@@ -247,10 +255,9 @@ fn scan_project_dir(dir: &Path) -> (ProjectScan, u64) {
     let mut ps = ProjectScan::default();
     let bad = walk_files(dir, |p, md| {
         let rel = p.strip_prefix(dir).unwrap_or(p);
-        let first = first_component(rel);
         let depth = rel.components().count();
         let is_jsonl = p.extension().map_or(false, |x| x == "jsonl");
-        let cat = classify_in_project(&first, is_jsonl);
+        let cat = classify_in_project(rel, is_jsonl);
         let m = mtime_ms(md);
         if cat == Category::AutoMemory {
             ps.memory_file_count += 1;
@@ -374,7 +381,7 @@ pub fn simulate_cleanup(root: &Path, cleanup_days: u32, now: i64) -> CleanupPrev
             walk_files(&base, |p, md| {
                 let rel = p.strip_prefix(&base).unwrap_or(p);
                 let is_jsonl = p.extension().map_or(false, |x| x == "jsonl");
-                if classify_in_project(&first_component(rel), is_jsonl) == Category::Transcripts && is_old(md) {
+                if classify_in_project(rel, is_jsonl) == Category::Transcripts && is_old(md) {
                     acc.add(Category::Transcripts, md.len(), mtime_ms(md));
                 }
             });

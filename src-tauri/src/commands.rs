@@ -8,7 +8,7 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 #[tauri::command]
 pub fn get_overview(state: State<'_, AppState>) -> Result<Overview, String> {
-    let engine = state.engine.lock().map_err(|_| "引擎状态损坏".to_string())?;
+    let engine = state.engine.lock().unwrap_or_else(|e| e.into_inner());
     Ok(engine.quick_overview(&WinProcessProbe, &StdRunner))
 }
 
@@ -21,10 +21,7 @@ pub fn refresh(app: AppHandle, state: State<'_, AppState>) -> Result<(), String>
     let app2 = app.clone();
     std::thread::spawn(move || {
         let state = app2.state::<AppState>();
-        let mut engine = match state.engine.lock() {
-            Ok(e) => e,
-            Err(_) => return,
-        };
+        let mut engine = state.engine.lock().unwrap_or_else(|e| e.into_inner());
         let progress_app = app2.clone();
         let overview = engine.full_refresh(&WinProcessProbe, &StdRunner, &mut |p| {
             let _ = progress_app.emit("scan-progress", &p);
@@ -40,8 +37,8 @@ fn spawn_detached(program: &str, args: &[&str]) -> Result<(), String> {
 
 #[tauri::command]
 pub fn open_in_explorer(path: String) -> Result<(), String> {
-    if !Path::new(&path).exists() {
-        return Err(format!("路径不存在：{path}"));
+    if !Path::new(&path).is_dir() {
+        return Err(format!("路径不存在或不是目录：{path}"));
     }
     spawn_detached("explorer.exe", &[path.as_str()])
 }
@@ -60,7 +57,7 @@ pub fn run_claude(path: String, resume: bool) -> Result<(), String> {
 
 #[tauri::command]
 pub fn open_insights_report(state: State<'_, AppState>) -> Result<(), String> {
-    let engine = state.engine.lock().map_err(|_| "引擎状态损坏".to_string())?;
+    let engine = state.engine.lock().unwrap_or_else(|e| e.into_inner());
     let report = engine.root().root.join("usage-data").join("report.html");
     if !report.is_file() {
         return Err("尚未生成 /insights 报告（usage-data/report.html 不存在）。请在 CC 会话中执行 /insights。".into());

@@ -26,8 +26,5 @@ pub fn save_json<T: Serialize>(path: &Path, value: &T) -> std::io::Result<()> {
     }
     let tmp = path.with_extension("json.tmp");
     std::fs::write(&tmp, serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?)?;
-    if path.exists() {
-        std::fs::remove_file(path)?;
-    }
     std::fs::rename(&tmp, path)
 }
