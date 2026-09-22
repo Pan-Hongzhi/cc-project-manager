@@ -36,6 +36,7 @@ fn verify_three_checks() {
         (3, ProbeResult::Found { image_name: "node.exe".into(), creation_filetime: 1_000_000_000 + 50_000_000 }),
         (4, ProbeResult::Unknown),
         (5, ProbeResult::Found { image_name: "Node.EXE".into(), creation_filetime: 1_000_000_000 + 10_000_000 }),
+        (6, ProbeResult::Found { image_name: "claude.exe.old.1758530000".into(), creation_filetime: 1_000_000_000 }),
     ]));
     assert_eq!(verify(&rec(1, Some(1_000_000_000)), &probe), Verified::Alive);
     assert_eq!(verify(&rec(2, Some(1_000_000_000)), &probe), Verified::Stale, "PID 被其他程序复用");
@@ -44,6 +45,7 @@ fn verify_three_checks() {
     assert_eq!(verify(&rec(5, Some(1_000_000_000)), &probe), Verified::Alive, "映像名大小写不敏感，1 s 差在容差内");
     assert_eq!(verify(&rec(9, Some(1)), &probe), Verified::Stale, "PID 不存在");
     assert_eq!(verify(&rec(1, None), &probe), Verified::Alive, "没有 procStart 时只做前两重校验");
+    assert_eq!(verify(&rec(6, Some(1_000_000_000)), &probe), Verified::Alive, "自更新后重命名的映像名仍算 claude.exe");
 }
 
 #[test]

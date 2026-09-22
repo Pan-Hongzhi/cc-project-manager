@@ -44,12 +44,23 @@ pub fn parse_session_file(text: &str) -> Option<SessionRecord> {
     })
 }
 
+/// 规范化映像文件名以便与 HOST_IMAGES 比对：转小写，并截断到首个 ".exe" 之后
+/// （CC 自更新会把正在运行的 claude.exe 重命名为 claude.exe.old.<ts>，进程仍存活）。
+/// 找不到 ".exe" 时原样返回小写结果。
+fn host_image_name(image_name: &str) -> String {
+    let lower = image_name.to_ascii_lowercase();
+    match lower.find(".exe") {
+        Some(i) => lower[..i + 4].to_string(),
+        None => lower,
+    }
+}
+
 pub fn verify(rec: &SessionRecord, probe: &dyn ProcessProbe) -> Verified {
     match probe.probe(rec.pid) {
         ProbeResult::NotFound => Verified::Stale,
         ProbeResult::Unknown => Verified::Unknown,
         ProbeResult::Found { image_name, creation_filetime } => {
-            let img = image_name.to_ascii_lowercase();
+            let img = host_image_name(&image_name);
             if !HOST_IMAGES.contains(&img.as_str()) {
                 return Verified::Stale;
             }
