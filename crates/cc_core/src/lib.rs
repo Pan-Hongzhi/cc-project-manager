@@ -8,6 +8,7 @@ pub mod model;
 pub mod paths;
 pub mod scan;
 pub mod sessions;
+pub mod stats;
 pub mod usage;
 
 #[cfg(test)]
