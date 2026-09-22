@@ -101,7 +101,7 @@ fn transcript_files(project_dir: &Path) -> Vec<(PathBuf, bool)> {
 
 pub fn update_project_usage(project_dir: &Path, cache: &mut UsageCache) -> UsageStat {
     let files = transcript_files(project_dir);
-    let prefix = project_dir.to_string_lossy().to_string();
+    let prefix = format!("{}{}", project_dir.to_string_lossy(), std::path::MAIN_SEPARATOR);
     let present: std::collections::BTreeSet<String> = files.iter().map(|(p, _)| p.to_string_lossy().to_string()).collect();
     cache.files.retain(|k, _| !k.starts_with(&prefix) || present.contains(k));
 

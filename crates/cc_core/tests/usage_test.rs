@@ -71,3 +71,15 @@ fn project_usage_is_incremental_and_counts_sessions() {
     assert_eq!(s3.session_count, 1);
     assert_eq!(cache.files.len(), 2);
 }
+
+#[test]
+fn sibling_project_with_prefix_name_is_not_evicted() {
+    let f = FakeRoot::new();
+    f.project_file("C--a", "s.jsonl", &assistant("m1", 1, 1, 1, 1));
+    f.project_file("C--ab", "s.jsonl", &assistant("m2", 2, 2, 2, 2));
+    let mut cache = UsageCache::default();
+    update_project_usage(&f.project_dir("C--ab"), &mut cache);
+    assert_eq!(cache.files.len(), 1);
+    update_project_usage(&f.project_dir("C--a"), &mut cache);
+    assert_eq!(cache.files.len(), 2, "更新 C--a 不得驱逐 C--ab 的缓存条目");
+}
