@@ -226,7 +226,7 @@ is_project_running(project) -> Option<RunningSession>
 
 1. 枚举 `sessions/*.json`，解析 `pid`、`cwd`、`procStart`、`sessionId`、`updatedAt`。解析失败的文件忽略。
 2. 校验 PID 存活：Windows API 打开进程；失败 → `Stale`。
-3. 校验映像名：进程主模块文件名须为 `claude.exe`、`node.exe` 或 `bun.exe` 之一【假设：npm 安装时宿主进程为 node.exe；原生安装为 claude.exe】；不符 → `Stale`（PID 被复用）。
+3. 校验映像名：进程主模块文件名须为 `claude.exe`、`node.exe` 或 `bun.exe` 之一；不符 → `Stale`（PID 被复用）。**实测补充（2026-09-22，M1 实现时发现）**：CC 自更新后会把仍在运行的二进制重命名为 `claude.exe.old.<时间戳>`，`QueryFullProcessImageNameW` 返回的就是重命名后的名字。因此比较前先把文件名截到第一个 `.exe`（大小写不敏感）再匹配；启动时间校验仍然生效，误判为 Alive 的风险可忽略。
 4. 校验启动时间：`procStart` 与进程实际创建时间（FILETIME）比对，容差 2 s；不符 → `Stale`。步骤 3、4 任一无法获取（权限不足）→ `Unknown`，**按运行中处理**（保守）。
 5. `cwd` 规范化后与项目真实路径比较：相等或为其子目录 → 该项目运行中。对 `Migrate`，源路径与目标路径都要查。此外任何 `Migrate` 要求**全局无任何 Alive/Unknown 会话**（需求 4.2 第 1 条：CC 退出时会重写 `~/.claude.json`）。
 6. 工具**不删除**僵尸 session 文件（在白名单内），只在诊断页列出。
@@ -454,7 +454,7 @@ logs/app.log           运行日志（滚动，最多 5 × 5 MB）
 | --- | --- | --- |
 | A-1 | 当前编码规则为「正斜杠化后，非 `[A-Za-z0-9-]` 字符逐个替换为 `-`」 | 本机 17/17 有目录条目匹配；实现后用自校验持续监控 |
 | A-2 | 同一 assistant 消息在转录中可能多行出现，按 `message.id` 去重取最后一行 | **已于 2026-09-22 实测确认**：一份转录 22 行 assistant 对应 9 个 `message.id`，6 个 id 重复出现。实现时再抽样对比 `~/.claude.json` 条目 `lastTotal*Tokens` |
-| A-3 | 运行中 CC 的宿主进程映像名为 `claude.exe`（原生）或 `node.exe`（npm） | 实现 guard 时实测，`bun.exe` 作为兼容项 |
+| A-3 | 运行中 CC 的宿主进程映像名为 `claude.exe`（原生）或 `node.exe`（npm） | **已于 2026-09-22 实测修正**：自更新后运行中的进程映像名为 `claude.exe.old.<时间戳>`，匹配前截到第一个 `.exe`（见 6.2 第 3 条）；`bun.exe` 作为兼容项 |
 | A-4 | `~/.claude.json` 在 CC 未运行时不会被其他进程（daemon）改写 | 迁移前后比对文件 mtime；若 daemon 会改写，迁移需额外要求 daemon 未运行 |
 | A-5 | 顶层目录体积最多 24 h 滞后可接受 | 与需求方确认（属于 D-8 类阈值） |
 | A-6 | 大转录（数十 MB）流式解析在后台线程内数秒完成 | 用本机最大转录文件基准 |
