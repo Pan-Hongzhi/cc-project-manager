@@ -84,6 +84,23 @@ pub fn category_meta(cat: &Category, cleanup_days: u32) -> CategoryMeta {
     CategoryMeta { category: cat.clone(), retention, deletable_by_tool: deletable, consequence: consequence.to_string() }
 }
 
+/// 前端渲染保留策略说明用的固定类别列表（不含带名字的 Legacy/Protected/Unknown）。
+pub fn list_all_categories() -> Vec<Category> {
+    vec![
+        Category::Transcripts,
+        Category::AutoMemory,
+        Category::FileHistory,
+        Category::PasteCache,
+        Category::Uploads,
+        Category::Debug,
+        Category::Plans,
+        Category::Tasks,
+        Category::SessionEnv,
+        Category::HistoryLog,
+        Category::StatsCache,
+    ]
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum CleanupDaysSource {
