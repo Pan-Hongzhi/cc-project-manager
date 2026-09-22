@@ -2,6 +2,7 @@
 //! 只读原则：本 crate 中 M1 阶段不存在任何对数据根目录的写操作。
 
 pub mod config;
+pub mod discovery;
 pub mod encoding;
 pub mod model;
 pub mod paths;
