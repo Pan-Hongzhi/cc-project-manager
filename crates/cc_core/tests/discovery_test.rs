@@ -98,3 +98,24 @@ fn probe_real_path_reports_missing_and_existing() {
     assert_eq!(probe_real_path(&existing, Duration::from_secs(2)), PathProbe::Exists);
     assert_eq!(probe_real_path(r"C:\definitely\not\here\xyz", Duration::from_secs(2)), PathProbe::Missing);
 }
+
+#[test]
+fn legacy_dir_is_explained_even_when_current_dir_also_exists() {
+    // 真机场景 F4：同一项目同时有新编码目录和旧编码残留目录
+    let mut f = FakeRoot::new();
+    f.config_entry("C:/work/win_project/food-ordering", json!({}));
+    f.project_dir("C--work-win-project-food-ordering");
+    f.project_dir("C--work-win_project-food-ordering");
+    let cfg = load_config(&f.root.config_file).unwrap();
+    let (projects, check) = discover(Some(&cfg), &list_encoded_dirs(f.path()), &probe_all_exist);
+    let owner = projects.iter().find(|p| p.id == "C:/work/win_project/food-ordering").unwrap();
+    assert_eq!(owner.state, ProjectState::Normal);
+    assert_eq!(owner.encoded_dir.as_deref(), Some("C--work-win-project-food-ordering"));
+    let legacy = projects.iter().find(|p| p.id == "dir:C--work-win_project-food-ordering").unwrap();
+    assert_eq!(legacy.state, ProjectState::LegacyEncoded);
+    assert_eq!(legacy.legacy_of.as_deref(), Some("C:/work/win_project/food-ordering"));
+    assert_eq!(check.matched_by_current_rule, 1);
+    assert_eq!(check.matched_by_legacy_rule, 1);
+    assert!(check.unmatched.is_empty());
+    assert!(check.migration_enabled);
+}

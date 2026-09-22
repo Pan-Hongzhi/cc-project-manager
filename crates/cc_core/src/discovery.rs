@@ -70,14 +70,13 @@ pub fn discover(
             let mut encoded_dir = None;
             if dir_set.contains(current.as_str()) {
                 claimed.insert(current.clone());
-                encoded_dir = Some(current);
+                encoded_dir = Some(current.clone());
                 check.matched_by_current_rule += 1;
-            } else {
-                let legacy = encode_path_legacy(&e.key);
-                if dir_set.contains(legacy.as_str()) && !legacy_claims.contains_key(&legacy) {
-                    legacy_claims.insert(legacy, e.key.clone());
-                    check.matched_by_legacy_rule += 1;
-                }
+            }
+            let legacy = encode_path_legacy(&e.key);
+            if legacy != current && dir_set.contains(legacy.as_str()) && !legacy_claims.contains_key(&legacy) {
+                legacy_claims.insert(legacy, e.key.clone());
+                check.matched_by_legacy_rule += 1;
             }
             let state = match probe(&e.key) {
                 PathProbe::Missing => ProjectState::Orphan,
