@@ -80,3 +80,18 @@ fn real_machine_sessions_smoke() {
     }
     assert!(sessions.iter().any(|s| s.verified == Verified::Alive), "当前 CC 正在运行，至少应有一个 Alive");
 }
+
+#[test]
+fn session_is_assigned_only_to_the_deepest_matching_project() {
+    use cc_core::sessions::assign_sessions;
+    let f = FakeRoot::new();
+    f.session(300, r"C:\proj\a\sub", Some(500));
+    let probe = FakeProbe(HashMap::from([
+        (300, ProbeResult::Found { image_name: "claude.exe".into(), creation_filetime: 500 }),
+    ]));
+    let sessions = list_sessions(f.path(), &probe);
+    let owners = assign_sessions(&sessions, &["C:/proj", "C:/proj/a", "C:/other"]);
+    assert!(owners.contains_key("C:/proj/a"), "cwd 所在的最深项目拥有该会话");
+    assert!(!owners.contains_key("C:/proj"), "父目录项目不能把子项目的会话算成自己的");
+    assert!(!owners.contains_key("C:/other"));
+}

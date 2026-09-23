@@ -6,7 +6,8 @@ export function stateLabel(s: ProjectState): string {
 
 export type TagType = "default" | "success" | "warning" | "error" | "info";
 export function stateTagType(s: ProjectState): TagType {
-  return { normal: "success", config_only: "default", orphan: "error", unreachable: "warning", unowned: "warning", legacy_encoded: "info" }[s] as TagType;
+  // 绿色留给「运行中」（呼应图标里的绿色光标块），正常项目用中性色
+  return { normal: "default", config_only: "default", orphan: "error", unreachable: "warning", unowned: "warning", legacy_encoded: "info" }[s] as TagType;
 }
 
 export function verifiedLabel(v: Verified): string {

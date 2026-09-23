@@ -98,6 +98,26 @@ pub fn list_sessions(root: &Path, probe: &dyn ProcessProbe) -> Vec<RunningSessio
     out
 }
 
+/// 把会话分配给项目：每个非 Stale 会话只归属到 cwd 所在的**路径最长**的项目。
+/// 否则像 `C:/Users/x` 这样的父目录项目会把所有子项目的会话都算成自己的「运行中」。
+pub fn assign_sessions<'a>(
+    sessions: &[RunningSession],
+    real_paths: &[&'a str],
+) -> std::collections::BTreeMap<&'a str, RunningSession> {
+    let mut out = std::collections::BTreeMap::new();
+    for s in sessions.iter().filter(|s| s.verified != Verified::Stale) {
+        let owner = real_paths
+            .iter()
+            .copied()
+            .filter(|p| is_same_or_child(&s.cwd, p))
+            .max_by_key(|p| crate::encoding::normalize_path(p).trim_end_matches('/').len());
+        if let Some(p) = owner {
+            out.entry(p).or_insert_with(|| s.clone());
+        }
+    }
+    out
+}
+
 /// 项目运行中 = 存在 Alive/Unknown 会话，其 cwd 等于项目路径或是其子目录。
 pub fn session_for_project(sessions: &[RunningSession], real_path: &str) -> Option<RunningSession> {
     sessions

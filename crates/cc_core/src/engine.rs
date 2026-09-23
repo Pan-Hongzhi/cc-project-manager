@@ -9,7 +9,7 @@ use crate::scan::{
     category_meta, list_all_categories, now_ms, scan, simulate_cleanup, CleanupPreview, ScanCache, ScanProgress,
     ScanResult, SCAN_SCHEMA_VERSION,
 };
-use crate::sessions::{list_sessions, session_for_project, ProcessProbe};
+use crate::sessions::{assign_sessions, list_sessions, ProcessProbe};
 use crate::stats::{read_global_stats, GlobalStats};
 use crate::usage::{update_project_usage, UsageCache, USAGE_SCHEMA_VERSION};
 use serde::{Deserialize, Serialize};
@@ -61,9 +61,15 @@ impl Engine {
         let dirs = list_encoded_dirs(&self.root.root);
         let (mut projects, check) = discover(config.as_ref(), &dirs, &|p| probe_real_path(p, PATH_PROBE_TIMEOUT));
         let sessions = list_sessions(&self.root.root, probe);
+        // 每个会话只归属到路径最深的项目，避免父目录项目（如用户主目录）把所有子项目算成运行中
+        let real_paths: Vec<&str> = projects.iter().filter_map(|p| p.real_path.as_deref()).collect();
+        let owners: std::collections::BTreeMap<String, RunningSession> = assign_sessions(&sessions, &real_paths)
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v))
+            .collect();
         for p in &mut projects {
             if let Some(real) = &p.real_path {
-                p.running = session_for_project(&sessions, real);
+                p.running = owners.get(real.as_str()).cloned();
             }
         }
         (projects, check, sessions, config_error)

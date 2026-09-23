@@ -7,7 +7,7 @@ use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use walkdir::WalkDir;
 
-pub const SCAN_SCHEMA_VERSION: u32 = 1;
+pub const SCAN_SCHEMA_VERSION: u32 = 2; // v2：项目内嵌套转录按完整路径分类，旧缓存作废
 pub const REUSE_WINDOW_MS: i64 = 24 * 3600 * 1000;
 const DAY_MS: i64 = 86_400_000;
 
