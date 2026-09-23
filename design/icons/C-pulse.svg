@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#EF4444"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#7C2D12" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="226" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="226" fill="url(#sheen)"/>
+  <!-- folder -->
+  <g filter="url(#shadow)">
+    <path d="M232 300 h190 l64 64 h306 a44 44 0 0 1 44 44 v316 a44 44 0 0 1 -44 44 H232 a44 44 0 0 1 -44 -44 V344 a44 44 0 0 1 44 -44 z" fill="#FFFFFF"/>
+  </g>
+  <!-- folder body (front flap) -->
+  <rect x="188" y="428" width="648" height="340" rx="44" fill="#FFFFFF"/>
+  <rect x="188" y="428" width="648" height="14" fill="#F59E0B" fill-opacity="0.16"/>
+  <!-- activity pulse line -->
+  <polyline points="268,640 372,640 420,540 476,700 532,588 588,652 640,652 690,596 756,596"
+            fill="none" stroke="#EF4444" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- live dot at the end -->
+  <circle cx="756" cy="596" r="30" fill="#EF4444"/>
+  <circle cx="756" cy="596" r="14" fill="#FFFFFF"/>
+</svg>
