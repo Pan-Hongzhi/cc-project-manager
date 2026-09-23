@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 小尺寸专用版（16～48 px）：两张卡、更粗的内容条、更大的绿点，无高光与阴影 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="200" fill="url(#bg)"/>
+  <!-- back card -->
+  <rect x="300" y="236" width="560" height="380" rx="64" fill="#FFFFFF" fill-opacity="0.5"/>
+  <!-- front card -->
+  <rect x="164" y="396" width="560" height="380" rx="64" fill="#FFFFFF"/>
+  <!-- title bar + one row, thick enough to survive 24 px -->
+  <rect x="236" y="476" width="230" height="76" rx="38" fill="#4F46E5"/>
+  <rect x="236" y="616" width="340" height="68" rx="34" fill="#4F46E5" fill-opacity="0.4"/>
+  <!-- running dot -->
+  <circle cx="644" cy="514" r="46" fill="#22C55E"/>
+</svg>
