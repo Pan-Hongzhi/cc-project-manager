@@ -18,6 +18,9 @@ CANDIDATES = [
     ("C-pulse", "C 活跃脉搏"),
     ("D-grid", "D 清理网格"),
     ("E-prompt", "E 终端记忆"),
+    ("F-cards", "F 无底板卡片"),
+    ("G-terminal", "G 黑框命令行"),
+    ("H-pixel", "H 命令行像素小人"),
 ]
 
 
