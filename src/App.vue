@@ -20,7 +20,7 @@ onMounted(async () => {
 
 <template>
   <!-- 与图标一致：始终使用深色「终端」主题 -->
-  <NConfigProvider :theme="darkTheme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
+  <NConfigProvider abstract :theme="darkTheme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
     <NMessageProvider>
       <div class="app">
         <StatusBar />
@@ -28,7 +28,7 @@ onMounted(async () => {
         <NAlert v-if="store.overview?.config_error" type="warning" class="banner" title="配置文件不可用">
           {{ store.overview.config_error }}。当前只能显示无主数据目录。
         </NAlert>
-        <NTabs v-model:value="tab" type="line" animated class="tabs">
+        <NTabs v-model:value="tab" type="line" class="tabs" pane-wrapper-style="flex: 1; min-height: 0; display: flex; flex-direction: column" pane-style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden">
           <NTabPane name="projects" tab="项目"><ProjectsView /></NTabPane>
           <NTabPane name="global" tab="全局"><GlobalView /></NTabPane>
           <NTabPane name="diagnostics" tab="诊断"><DiagnosticsView /></NTabPane>
@@ -72,7 +72,7 @@ body {
 .banner { margin: 8px 16px; }
 /* 标签页填满剩余高度：窗口放大时表格跟着长高，不留底部空白 */
 .tabs { padding: 0 16px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.tabs > .n-tabs-pane-wrapper { flex: 1; min-height: 0; overflow: auto; }
+.tabs > .n-tabs-pane-wrapper { flex: 1; min-height: 0; overflow-y: auto !important; overflow-x: hidden; } /* Naive 默认 overflow:hidden 且同优先级后注入，需 !important */
 
 /* 等宽字体：路径、数字、编码目录名 */
 .mono, .n-data-table .mono, code, .n-text.n-text--code {
@@ -108,7 +108,7 @@ body {
 
 /* 细滚动条 */
 *::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background: var(--chrome-raised); border-radius: 4px; }
-*::-webkit-scrollbar-thumb:hover { background: var(--edge); }
-*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+*::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
 </style>
