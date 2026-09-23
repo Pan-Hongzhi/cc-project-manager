@@ -54,7 +54,7 @@ const rows = computed<Project[]>(() => {
 
 const columns = computed<DataTableColumns<Project>>(() => [
   {
-    title: t("projects.col.state"), key: "state", width: 120,
+    title: t("projects.col.state"), key: "state", width: 170,
     render: (p) => h(NSpace, { size: 4 }, () => [
       h(NTag, { size: "small", type: stateTagType(p.state) }, () => stateLabel(p.state)),
       p.running ? h(NTag, { size: "small", type: "success", bordered: false }, () => t("running")) : null,
@@ -66,7 +66,7 @@ const columns = computed<DataTableColumns<Project>>(() => [
   },
   { title: t("projects.col.active"), key: "last_active_ms", width: 120, render: (p) => formatRelative(p.last_active_ms) },
   { title: t("projects.col.size"), key: "size", width: 100, render: (p) => h("span", { class: "mono" }, p.size ? formatBytes(p.size.total_bytes) : "—") },
-  { title: t("projects.col.tokens"), key: "usage", width: 150, render: (p) => h("span", { class: "mono" }, p.usage ? formatTokens(p.usage.input + p.usage.output + p.usage.cache_creation + p.usage.cache_read) : "—") },
+  { title: t("projects.col.tokens"), key: "usage", width: 190, render: (p) => h("span", { class: "mono" }, p.usage ? formatTokens(p.usage.input + p.usage.output + p.usage.cache_creation + p.usage.cache_read) : "—") },
   { title: t("projects.col.sessions"), key: "sessions", width: 80, render: (p) => h("span", { class: "mono" }, String(p.usage?.session_count ?? "—")) },
 ]);
 
