@@ -21,7 +21,7 @@ async function openToolDataDir() {
       <NDescriptionsItem label="配置文件">{{ ov.root.config_file }} <NText v-if="ov.config_error" type="error">— {{ ov.config_error }}</NText></NDescriptionsItem>
       <NDescriptionsItem label="claude CLI">
         <template v-if="ov.cli">{{ ov.cli.path }}（{{ ov.cli.kind }}，{{ ov.cli.version ?? "版本未知" }}）</template>
-        <NText v-else type="error">未找到。删除功能（后续版本）将不可用。</NText>
+        <NText v-else type="error">未找到，依赖 CLI 的操作不可用。请确认已安装 Claude Code 并在 PATH 中。</NText>
       </NDescriptionsItem>
       <NDescriptionsItem label="工具自身数据目录">{{ ov.tool_data_dir }} <NButton size="tiny" @click="openToolDataDir">打开</NButton></NDescriptionsItem>
       <NDescriptionsItem label="视图生成时间">{{ formatDateTime(ov.generated_at_ms) }}</NDescriptionsItem>
@@ -31,7 +31,7 @@ async function openToolDataDir() {
     <NAlert :type="ov.self_check.migration_enabled ? 'success' : 'warning'" :show-icon="false">
       配置项 {{ ov.self_check.total_entries }} 条；当前规则匹配到数据目录 {{ ov.self_check.matched_by_current_rule }} 个；旧规则匹配 {{ ov.self_check.matched_by_legacy_rule }} 个；
       无法解释的目录 {{ ov.self_check.unmatched.length }} 个。
-      <div v-if="!ov.self_check.migration_enabled" style="margin-top: 4px">存在无法解释的目录，迁移功能（后续版本）将被禁用，以防官方更改编码规则后挪错数据。</div>
+      <div v-if="!ov.self_check.migration_enabled" style="margin-top: 4px">存在无法解释的目录，记忆迁移已禁用，以防 Claude Code 更改编码规则后挪错数据。</div>
       <ul v-if="ov.self_check.unmatched.length" style="margin: 4px 0 0"><li v-for="d in ov.self_check.unmatched" :key="d"><NText code>{{ d }}</NText></li></ul>
     </NAlert>
 

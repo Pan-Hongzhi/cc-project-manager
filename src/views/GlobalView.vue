@@ -90,7 +90,7 @@ const advice = computed<Advice[]>(() => {
       level: "success",
       title: "会自动清扫的数据不必动手",
       detail: `转录、文件快照、粘贴缓存等共 ${formatBytes(autoTotal)} 属于 ${scan.value.cleanup_days} 天自动清扫类别，其中 ${pv.files} 个文件（${formatBytes(pv.bytes)}）已超期，CC 下次启动清扫时会自动删除。`,
-      action: "无需操作。若想立刻释放，可在项目页打开对应数据目录手动删除，本版本不代为删除。",
+      action: "无需操作。若想立刻释放空间，可在项目页打开对应数据目录手动删除。",
       bytes: pv.bytes,
     });
   }
@@ -102,7 +102,7 @@ const advice = computed<Advice[]>(() => {
       level: "warning",
       title: `${idleBig.length} 个项目超过 ${IDLE_DAYS} 天未用且占用 ≥ 200 MB`,
       detail: `共 ${formatBytes(idleBig.reduce((s, p) => s + sizeOf(p), 0))}。最大的几个：${top}。`,
-      action: "建议优先清理。项目页筛选「长期未用且占用大」可逐个查看；删除项目（purge）将在下一版提供，现阶段可先导出记忆再手动处理。",
+      action: "建议优先清理。项目页筛选「长期未用且占用大」可逐个查看；确认不再需要的项目，可在终端执行 claude project purge <路径> 删除其全部状态。",
       bytes: idleBig.reduce((s, p) => s + sizeOf(p), 0),
     });
   }
@@ -116,7 +116,7 @@ const advice = computed<Advice[]>(() => {
       detail: withData.length
         ? `其中 ${withData.length} 个仍有数据，共 ${formatBytes(withData.reduce((s, p) => s + sizeOf(p), 0))}：${withData.map((p) => p.real_path).join("；")}。`
         : "都没有数据目录，只剩配置条目。",
-      action: "若项目文件夹只是移动了位置，等下一版的「迁移 / 重绑定」把记忆挂回去；若确实不再需要，用 purge 连配置条目一起清掉。",
+      action: "若项目文件夹只是移动了位置，在新位置运行一次 claude 即可生成新的项目记录，旧数据可随后清理；若确实不再需要，可执行 claude project purge <路径> 连配置条目一起清除。",
       bytes: withData.reduce((s, p) => s + sizeOf(p), 0),
     });
   }
@@ -127,7 +127,7 @@ const advice = computed<Advice[]>(() => {
       level: "info",
       title: `${legacy.length} 个旧编码残留 / 无主数据目录`,
       detail: `共 ${formatBytes(legacy.reduce((s, p) => s + sizeOf(p), 0))}，CC 当前不会再读取它们：${legacy.map((p) => p.encoded_dir).join("；")}。`,
-      action: "第一版只展示。可先在项目页「导出记忆」留档（下一版提供），再决定是否手动删除该目录。",
+      action: "这些目录不影响使用，只占用空间。如需释放，可先备份其中的 memory 目录，再手动删除。",
       bytes: legacy.reduce((s, p) => s + sizeOf(p), 0),
     });
   }
@@ -238,7 +238,7 @@ async function openDataRoot() {
       </NTable>
     </template>
     <NAlert v-else type="warning">{{ ov?.stats.reason ?? "stats-cache.json 不可用" }}</NAlert>
-    <NText depth="3" style="font-size: 12px; display: block; margin: 4px 0 8px">第一版只展示 token 数，不换算金额。</NText>
+    <NText depth="3" style="font-size: 12px; display: block; margin: 4px 0 8px">仅统计 token 数量，不换算费用。</NText>
     <NSpace>
       <NButton size="small" @click="openInsights">打开 /insights 报告</NButton>
       <NButton size="small" @click="openDataRoot" :disabled="!ov">打开数据根目录</NButton>

@@ -78,7 +78,7 @@ pub fn category_meta(cat: &Category, cleanup_days: u32) -> CategoryMeta {
     let auto = Retention::AutoCleanup { days: cleanup_days };
     let (retention, deletable, consequence) = match cat {
         Category::Transcripts => (auto, true, "失去 resume/continue 与会话回溯"),
-        Category::AutoMemory => (Retention::MemoryRule, false, "失去 CC 积累的项目知识（第一版不开放删除）"),
+        Category::AutoMemory => (Retention::MemoryRule, false, "失去 CC 积累的项目知识，不提供删除"),
         Category::FileHistory => (auto, false, "失去编辑前快照的 checkpoint 回滚"),
         Category::PasteCache | Category::Uploads | Category::Debug | Category::Plans | Category::Tasks | Category::SessionEnv => {
             (auto, false, "临时/辅助数据，CC 会自动清扫")

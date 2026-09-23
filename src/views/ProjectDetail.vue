@@ -29,9 +29,9 @@ async function guard(fn: () => Promise<void>) {
     </NSpace>
     <h3 style="word-break: break-all; margin: 8px 0">{{ p.real_path ?? p.encoded_dir }}</h3>
     <NAlert v-if="p.state === 'legacy_encoded'" type="info" style="margin-bottom: 8px">
-      此目录按旧版编码规则对应项目 <NText code>{{ p.legacy_of }}</NText>，CC 当前不再读取它。第一版只展示，不提供合并或删除。
+      此目录按旧版编码规则对应项目 <NText code>{{ p.legacy_of }}</NText>，CC 当前不再读取它，只占用空间；可打开数据目录查看，确认无用后手动删除。
     </NAlert>
-    <NAlert v-if="p.state === 'orphan'" type="error" style="margin-bottom: 8px">项目路径已不存在。迁移/重绑定功能将在后续版本提供。</NAlert>
+    <NAlert v-if="p.state === 'orphan'" type="error" style="margin-bottom: 8px">项目路径已不存在。若文件夹已移动，在新位置运行 claude 会生成新记录；若不再需要，可执行 claude project purge 清除。</NAlert>
 
     <NSpace style="margin-bottom: 12px" wrap>
       <NButton size="small" :disabled="!canRun" @click="guard(() => api.runClaude(p.real_path!, false))">新会话</NButton>
@@ -62,7 +62,7 @@ async function guard(fn: () => Promise<void>) {
     </NTable>
     <NText v-else depth="3">尚未扫描</NText>
     <NAlert type="warning" style="margin-top: 8px" :show-icon="false">
-      转录为明文 JSONL：命令输出中的密钥、`.env` 内容会原样落盘。分类删除将在后续版本提供。
+      转录为明文 JSONL：命令输出中的密钥、.env 内容会原样落盘，请注意保管。
     </NAlert>
 
     <NDivider title-placement="left">token（现存转录）</NDivider>
