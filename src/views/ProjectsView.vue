@@ -4,6 +4,7 @@ import { NDataTable, NTag, NSpace, NSelect, NInputNumber, NText, useMessage, typ
 import type { Project, ProjectState } from "../api";
 import { useOverviewStore } from "../stores/overview";
 import { stateLabel, stateTagType } from "../labels";
+import { t, translateError } from "../i18n";
 import { formatBytes, formatRelative, formatTokens } from "../utils/format";
 import ProjectDetail from "./ProjectDetail.vue";
 
@@ -17,16 +18,20 @@ const staleDays = ref(90);
 const bigMb = ref(200);
 const selectedId = ref<string | null>(null);
 
-const filterOptions = [
-  { label: "全部", value: "all" },
-  { label: "运行中", value: "running" },
-  { label: "长期未用且占用大", value: "stale_big" },
-  { label: "孤儿项目", value: "orphan" },
-  { label: "路径不可达", value: "unreachable" },
-  { label: "无主数据", value: "unowned" },
-  { label: "旧编码残留", value: "legacy_encoded" },
-  { label: "仅配置", value: "config_only" },
-];
+const filterOptions = computed(() => [
+  { label: t("projects.filter.all"), value: "all" },
+  { label: t("projects.filter.running"), value: "running" },
+  { label: t("projects.filter.stale_big"), value: "stale_big" },
+  { label: stateLabel("orphan"), value: "orphan" },
+  { label: stateLabel("unreachable"), value: "unreachable" },
+  { label: stateLabel("unowned"), value: "unowned" },
+  { label: stateLabel("legacy_encoded"), value: "legacy_encoded" },
+  { label: stateLabel("config_only"), value: "config_only" },
+]);
+const sortOptions = computed(() => [
+  { label: t("projects.sort.active"), value: "active" },
+  { label: t("projects.sort.size"), value: "size" },
+]);
 
 const rows = computed<Project[]>(() => {
   const now = Date.now();
@@ -47,23 +52,23 @@ const rows = computed<Project[]>(() => {
   );
 });
 
-const columns: DataTableColumns<Project> = [
+const columns = computed<DataTableColumns<Project>>(() => [
   {
-    title: "状态", key: "state", width: 120,
+    title: t("projects.col.state"), key: "state", width: 120,
     render: (p) => h(NSpace, { size: 4 }, () => [
       h(NTag, { size: "small", type: stateTagType(p.state) }, () => stateLabel(p.state)),
-      p.running ? h(NTag, { size: "small", type: "success", bordered: false }, () => "运行中") : null,
+      p.running ? h(NTag, { size: "small", type: "success", bordered: false }, () => t("running")) : null,
     ]),
   },
   {
-    title: "项目路径", key: "path", ellipsis: { tooltip: true },
-    render: (p) => p.real_path ? h("span", { class: "mono" }, p.real_path) : h(NText, { depth: 3, class: "mono" }, () => `（数据目录）${p.encoded_dir}`),
+    title: t("projects.col.path"), key: "path", ellipsis: { tooltip: true },
+    render: (p) => p.real_path ? h("span", { class: "mono" }, p.real_path) : h(NText, { depth: 3, class: "mono" }, () => `${t("projects.dataDirPrefix")}${p.encoded_dir}`),
   },
-  { title: "最近活跃", key: "last_active_ms", width: 120, render: (p) => formatRelative(p.last_active_ms) },
-  { title: "空间", key: "size", width: 100, render: (p) => h("span", { class: "mono" }, p.size ? formatBytes(p.size.total_bytes) : "—") },
-  { title: "token（现存转录）", key: "usage", width: 150, render: (p) => h("span", { class: "mono" }, p.usage ? formatTokens(p.usage.input + p.usage.output + p.usage.cache_creation + p.usage.cache_read) : "—") },
-  { title: "会话数", key: "sessions", width: 80, render: (p) => h("span", { class: "mono" }, String(p.usage?.session_count ?? "—")) },
-];
+  { title: t("projects.col.active"), key: "last_active_ms", width: 120, render: (p) => formatRelative(p.last_active_ms) },
+  { title: t("projects.col.size"), key: "size", width: 100, render: (p) => h("span", { class: "mono" }, p.size ? formatBytes(p.size.total_bytes) : "—") },
+  { title: t("projects.col.tokens"), key: "usage", width: 150, render: (p) => h("span", { class: "mono" }, p.usage ? formatTokens(p.usage.input + p.usage.output + p.usage.cache_creation + p.usage.cache_read) : "—") },
+  { title: t("projects.col.sessions"), key: "sessions", width: 80, render: (p) => h("span", { class: "mono" }, String(p.usage?.session_count ?? "—")) },
+]);
 
 const selected = computed(() => rows.value.find((p) => p.id === selectedId.value) ?? store.overview?.projects.find((p) => p.id === selectedId.value) ?? null);
 const rowProps = (p: Project) => ({
@@ -105,20 +110,20 @@ onUnmounted(() => observer?.disconnect());
     <div class="list">
       <NSpace align="center" style="margin-bottom: 8px" wrap>
         <NSelect v-model:value="filter" :options="filterOptions" size="small" style="width: 180px" />
-        <NSelect v-model:value="sortBy" size="small" style="width: 150px" :options="[{ label: '按最近活跃', value: 'active' }, { label: '按空间占用', value: 'size' }]" />
+        <NSelect v-model:value="sortBy" size="small" style="width: 150px" :options="sortOptions" />
         <template v-if="filter === 'stale_big'">
-          <NText depth="3">未用超过</NText><NInputNumber v-model:value="staleDays" size="small" :min="1" style="width: 90px" /><NText depth="3">天，且 ≥</NText>
+          <NText depth="3">{{ t("projects.idleOver") }}</NText><NInputNumber v-model:value="staleDays" size="small" :min="1" style="width: 90px" /><NText depth="3">{{ t("projects.daysAnd") }}</NText>
           <NInputNumber v-model:value="bigMb" size="small" :min="1" style="width: 100px" /><NText depth="3">MB</NText>
         </template>
-        <NText depth="3">共 {{ rows.length }} 项</NText>
+        <NText depth="3">{{ t("projects.count", { n: rows.length }) }}</NText>
       </NSpace>
       <div ref="tableWrap">
         <NDataTable :columns="columns" :data="rows" :row-key="(p: Project) => p.id" :row-props="rowProps" size="small" :max-height="tableMaxHeight" :loading="store.loading" />
       </div>
     </div>
     <div ref="detailWrap" class="detail" :style="{ maxHeight: detailMaxHeight + 'px' }">
-      <ProjectDetail v-if="selected" :project="selected" @error="(m: string) => message.error(m)" />
-      <NText v-else depth="3">点击左侧项目查看详情</NText>
+      <ProjectDetail v-if="selected" :project="selected" @error="(m: string) => message.error(translateError(m))" />
+      <NText v-else depth="3">{{ t("projects.selectHint") }}</NText>
     </div>
   </div>
 </template>

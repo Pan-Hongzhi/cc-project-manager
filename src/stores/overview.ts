@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { api, type Overview, type Project, type ScanProgress } from "../api";
+import { translateError } from "../i18n";
 
 let unlisteners: UnlistenFn[] = [];
 
@@ -38,7 +39,7 @@ export const useOverviewStore = defineStore("overview", {
       try {
         this.overview = await api.getOverview();
       } catch (e) {
-        this.error = String(e);
+        this.error = translateError(e);
       } finally {
         this.loading = false;
       }
@@ -51,7 +52,7 @@ export const useOverviewStore = defineStore("overview", {
         await api.refresh();
       } catch (e) {
         this.scanning = false;
-        this.error = String(e);
+        this.error = translateError(e);
       }
     },
   },

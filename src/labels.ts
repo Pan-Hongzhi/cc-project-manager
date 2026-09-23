@@ -1,7 +1,8 @@
 import type { Category, ProjectState, Retention, Verified } from "./api";
+import { t } from "./i18n";
 
 export function stateLabel(s: ProjectState): string {
-  return { normal: "正常", config_only: "仅配置", orphan: "孤儿项目", unreachable: "路径不可达", unowned: "无主数据", legacy_encoded: "旧编码残留" }[s];
+  return t(`state.${s}`);
 }
 
 export type TagType = "default" | "success" | "warning" | "error" | "info";
@@ -11,27 +12,43 @@ export function stateTagType(s: ProjectState): TagType {
 }
 
 export function verifiedLabel(v: Verified): string {
-  return { alive: "运行中", stale: "僵尸文件", unknown: "无法确认（按运行中处理）" }[v];
-}
-
-export function categoryLabel(c: Category): string {
-  const base: Record<string, string> = {
-    transcripts: "会话转录", auto_memory: "自动记忆", file_history: "文件快照", paste_cache: "粘贴缓存", uploads: "上传文件",
-    debug: "调试日志", plans: "计划", tasks: "任务", session_env: "会话环境", history_log: "prompt 历史", stats_cache: "用量统计缓存",
-    legacy: "旧版遗留", protected: "受保护", unknown: "未知数据",
-  };
-  const label = base[c.kind] ?? c.kind;
-  return c.name ? `${label}（${c.name}）` : label;
+  return t(`verified.${v}`);
 }
 
 /** 按 kind 聚合时的类别名（受保护 / 未知 / 旧版遗留等不带具体目录名） */
 export function kindLabel(kind: string): string {
-  const base: Record<string, string> = {
-    transcripts: "会话转录", auto_memory: "自动记忆", file_history: "文件快照", paste_cache: "粘贴缓存", uploads: "上传文件",
-    debug: "调试日志", plans: "计划", tasks: "任务", session_env: "会话环境", history_log: "prompt 历史", stats_cache: "用量统计缓存",
-    legacy: "旧版遗留", protected: "受保护", unknown: "未知数据",
-  };
-  return base[kind] ?? kind;
+  const key = `category.${kind}`;
+  const s = t(key);
+  return s === key ? kind : s;
+}
+
+export function categoryLabel(c: Category): string {
+  if (c.kind === "unknown" && c.name === "projects/other") return t("category.projectsOther");
+  const label = kindLabel(c.kind);
+  return c.name ? `${label}（${c.name}）` : label;
+}
+
+/** 类别的删除后果 / 说明（不再依赖后端文案，便于随语言切换） */
+export function consequenceLabel(c: Category): string {
+  switch (c.kind) {
+    case "paste_cache":
+    case "uploads":
+    case "debug":
+    case "plans":
+    case "tasks":
+    case "session_env":
+      return t("consequence.temp");
+    case "transcripts":
+    case "auto_memory":
+    case "file_history":
+    case "history_log":
+    case "stats_cache":
+    case "legacy":
+    case "protected":
+      return t(`consequence.${c.kind}`);
+    default:
+      return t("consequence.unknown");
+  }
 }
 
 /** 清扫策略的标签色：会自动消失=绿，永久/记忆规则=中性，受保护=蓝，遗留=橙，未知=红 */
@@ -47,12 +64,5 @@ export function retentionTagType(r: Retention): TagType {
 }
 
 export function retentionLabel(r: Retention): string {
-  switch (r.kind) {
-    case "auto_cleanup": return `${r.days} 天自动清扫`;
-    case "permanent": return "永久保留";
-    case "memory_rule": return "不参与清扫（记忆特殊规则）";
-    case "legacy_removed": return "清扫时移除";
-    case "protected": return "受保护，工具不触碰";
-    default: return "未知";
-  }
+  return r.kind === "auto_cleanup" ? t("retention.auto_cleanup", { days: r.days }) : t(`retention.${r.kind}`);
 }

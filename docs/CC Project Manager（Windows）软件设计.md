@@ -249,7 +249,7 @@ simulate_cleanup(result, cleanup_days) -> CleanupPreview
 | Category | 匹配规则 | 保留策略 | 工具可删 |
 | --- | --- | --- | --- |
 | Transcripts | `projects/<dir>/**/*.jsonl`、`projects/<dir>/**/subagents/**`、`projects/<dir>/**/tool-results/**`（**实测 2026-09-22**：子代理转录与工具结果嵌套在 `projects/<dir>/<sessionId>/` 之下，不在项目目录一级；分类按完整相对路径判断） | Auto30d | ✓（第 6.6 节方式）【D-6】 |
-| Unknown（项目内） | `projects/<dir>/` 下不属于以上任何类别的文件，合并为**单一**类别 `projects/其他`（不得按目录名逐个生成类别，避免随会话数无限增长） | Unknown | ✗ |
+| Unknown（项目内） | `projects/<dir>/` 下不属于以上任何类别的文件，合并为**单一**类别 `projects/other`（界面显示为「项目内其他文件」）（不得按目录名逐个生成类别，避免随会话数无限增长） | Unknown | ✗ |
 | AutoMemory | `projects/<dir>/memory/**` | MemoryRule | ✗（第一版不开放） |
 | FileHistory | `file-history/**` | Auto30d | ✗（第一版仅展示） |
 | PasteCache / Uploads / Debug / Plans / Tasks / SessionEnv | 同名顶层目录 | Auto30d | ✗（第一版仅展示） |

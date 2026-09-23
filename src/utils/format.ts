@@ -1,4 +1,5 @@
 import type { Category } from "../api";
+import { t } from "../i18n";
 
 export function formatBytes(n: number): string {
   if (n < 1024) return `${Math.round(n)} B`;
@@ -26,13 +27,13 @@ export function formatRelative(ms: number | null, now: number = Date.now()): str
   if (ms === null || ms === undefined) return "—";
   const diff = Math.max(0, now - ms);
   const min = Math.floor(diff / 60_000);
-  if (min < 1) return "刚刚";
-  if (min < 60) return `${min} 分钟前`;
+  if (min < 1) return t("time.now");
+  if (min < 60) return t("time.minutes", { n: min });
   const h = Math.floor(min / 60);
-  if (h < 24) return `${h} 小时前`;
+  if (h < 24) return t("time.hours", { n: h });
   const d = Math.floor(h / 24);
-  if (d < 30) return `${d} 天前`;
-  return `${Math.floor(d / 30)} 个月前`;
+  if (d < 30) return t("time.days", { n: d });
+  return t("time.months", { n: Math.floor(d / 30) });
 }
 
 export function formatTokens(n: number): string {

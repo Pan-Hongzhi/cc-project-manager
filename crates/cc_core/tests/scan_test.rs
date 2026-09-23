@@ -74,7 +74,7 @@ fn scans_projects_and_top_level_categories() {
     let a = &r.per_project["C--a"];
     assert_eq!(bytes_of(&a.size.by_category, &Category::Transcripts), 28);
     assert_eq!(bytes_of(&a.size.by_category, &Category::AutoMemory), 11);
-    assert_eq!(bytes_of(&a.size.by_category, &Category::Unknown("projects/其他".into())), 1);
+    assert_eq!(bytes_of(&a.size.by_category, &Category::Unknown("projects/other".into())), 1);
     assert_eq!(a.size.total_bytes, 40);
     assert_eq!(a.session_count, 1, "只数顶层 .jsonl");
     assert_eq!(a.memory_file_count, 2);

@@ -12,11 +12,11 @@ pub fn get_overview(state: State<'_, AppState>) -> Result<Overview, String> {
     Ok(engine.quick_overview(&WinProcessProbe, &StdRunner))
 }
 
-/// 后台全量刷新。扫描期间持有引擎锁；再次调用返回「扫描进行中」。
+/// 后台全量刷新。扫描期间持有引擎锁；再次调用返回错误码 err.scanning（前端按语言翻译）。
 #[tauri::command]
 pub fn refresh(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
     if state.engine.try_lock().is_err() {
-        return Err("扫描进行中".into());
+        return Err("err.scanning".into());
     }
     let app2 = app.clone();
     std::thread::spawn(move || {
@@ -32,13 +32,13 @@ pub fn refresh(app: AppHandle, state: State<'_, AppState>) -> Result<(), String>
 }
 
 fn spawn_detached(program: &str, args: &[&str]) -> Result<(), String> {
-    Command::new(program).args(args).spawn().map(|_| ()).map_err(|e| format!("启动 {program} 失败：{e}"))
+    Command::new(program).args(args).spawn().map(|_| ()).map_err(|e| format!("err.spawn_failed|{program}|{e}"))
 }
 
 #[tauri::command]
 pub fn open_in_explorer(path: String) -> Result<(), String> {
     if !Path::new(&path).is_dir() {
-        return Err(format!("路径不存在或不是目录：{path}"));
+        return Err(format!("err.path_not_dir|{path}"));
     }
     spawn_detached("explorer.exe", &[path.as_str()])
 }
@@ -47,7 +47,7 @@ pub fn open_in_explorer(path: String) -> Result<(), String> {
 #[tauri::command]
 pub fn run_claude(path: String, resume: bool) -> Result<(), String> {
     if !Path::new(&path).is_dir() {
-        return Err(format!("项目路径不存在：{path}"));
+        return Err(format!("err.project_missing|{path}"));
     }
     let escaped = path.replace('\'', "''");
     let cmd = if resume { "claude --resume" } else { "claude" };
@@ -60,7 +60,7 @@ pub fn open_insights_report(state: State<'_, AppState>) -> Result<(), String> {
     let engine = state.engine.lock().unwrap_or_else(|e| e.into_inner());
     let report = engine.root().root.join("usage-data").join("report.html");
     if !report.is_file() {
-        return Err("尚未生成 /insights 报告（usage-data/report.html 不存在）。请在 CC 会话中执行 /insights。".into());
+        return Err("err.no_insights_report".into());
     }
     let report_str = report.to_string_lossy();
     spawn_detached("explorer.exe", &[report_str.as_ref()])

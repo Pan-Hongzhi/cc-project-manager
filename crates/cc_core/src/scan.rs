@@ -57,7 +57,7 @@ pub fn classify_top_level(name: &str) -> Category {
 }
 
 /// projects/<dir>/ 内部：memory/ → AutoMemory；任意层级下 subagents/、tool-results/、.jsonl → Transcripts；
-/// 其他一律归入单一、有界的 Unknown("projects/其他") 桶，不按目录名（如 <sessionUuid>）各开一个类别。
+/// 其他一律归入单一、有界的 Unknown("projects/other") 桶，不按目录名（如 <sessionUuid>）各开一个类别。
 fn classify_in_project(rel: &Path, is_jsonl: bool) -> Category {
     if first_component(rel) == "memory" {
         return Category::AutoMemory;
@@ -71,7 +71,7 @@ fn classify_in_project(rel: &Path, is_jsonl: bool) -> Category {
     if is_jsonl {
         return Category::Transcripts;
     }
-    Category::Unknown("projects/其他".to_string())
+    Category::Unknown("projects/other".to_string())
 }
 
 pub fn category_meta(cat: &Category, cleanup_days: u32) -> CategoryMeta {

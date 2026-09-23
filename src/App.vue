@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { NConfigProvider, NMessageProvider, NTabs, NTabPane, NAlert, darkTheme, zhCN, dateZhCN } from "naive-ui";
+import { NConfigProvider, NMessageProvider, NTabs, NTabPane, NAlert, darkTheme } from "naive-ui";
+import { naiveDateLocale, naiveLocale, t } from "./i18n";
 import StatusBar from "./components/StatusBar.vue";
 import ProjectsView from "./views/ProjectsView.vue";
 import GlobalView from "./views/GlobalView.vue";
@@ -20,18 +21,18 @@ onMounted(async () => {
 
 <template>
   <!-- 与图标一致：始终使用深色「终端」主题 -->
-  <NConfigProvider abstract :theme="darkTheme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
+  <NConfigProvider abstract :theme="darkTheme" :theme-overrides="themeOverrides" :locale="naiveLocale" :date-locale="naiveDateLocale">
     <NMessageProvider>
       <div class="app">
         <StatusBar />
         <NAlert v-if="store.error" type="error" closable class="banner" @close="store.error = ''">{{ store.error }}</NAlert>
-        <NAlert v-if="store.overview?.config_error" type="warning" class="banner" title="配置文件不可用">
-          {{ store.overview.config_error }}。当前只能显示无主数据目录。
+        <NAlert v-if="store.overview?.config_error" type="warning" class="banner" :title="t('banner.configErrorTitle')">
+          {{ t("banner.configErrorBody", { error: store.overview.config_error }) }}
         </NAlert>
         <NTabs v-model:value="tab" type="line" class="tabs" pane-wrapper-style="flex: 1; min-height: 0; display: flex; flex-direction: column" pane-style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden">
-          <NTabPane name="projects" tab="项目"><ProjectsView /></NTabPane>
-          <NTabPane name="global" tab="全局"><GlobalView /></NTabPane>
-          <NTabPane name="diagnostics" tab="诊断"><DiagnosticsView /></NTabPane>
+          <NTabPane name="projects" :tab="t('tabs.projects')"><ProjectsView /></NTabPane>
+          <NTabPane name="global" :tab="t('tabs.global')"><GlobalView /></NTabPane>
+          <NTabPane name="diagnostics" :tab="t('tabs.diagnostics')"><DiagnosticsView /></NTabPane>
         </NTabs>
       </div>
     </NMessageProvider>
@@ -72,7 +73,6 @@ body {
 .banner { margin: 8px 16px; }
 /* 标签页填满剩余高度：窗口放大时表格跟着长高，不留底部空白 */
 .tabs { padding: 0 16px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.tabs > .n-tabs-pane-wrapper { flex: 1; min-height: 0; overflow-y: auto !important; overflow-x: hidden; } /* Naive 默认 overflow:hidden 且同优先级后注入，需 !important */
 
 /* 等宽字体：路径、数字、编码目录名 */
 .mono, .n-data-table .mono, code, .n-text.n-text--code {

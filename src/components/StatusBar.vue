@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { NButton, NTag, NProgress } from "naive-ui";
+import { NButton, NButtonGroup, NTag, NProgress } from "naive-ui";
 import Mascot from "./Mascot.vue";
 import { useOverviewStore } from "../stores/overview";
 import { formatBytes, formatRelative } from "../utils/format";
+import { locale, setLocale, t } from "../i18n";
 
 const store = useOverviewStore();
 const ov = computed(() => store.overview);
@@ -19,29 +20,33 @@ const pct = computed(() => (store.progress && store.progress.total > 0 ? Math.ro
       <span class="title mono">cc-project-manager<span class="cursor" :class="{ busy: store.scanning }" /></span>
       <span class="root mono" :title="ov?.root.root">{{ ov?.root.root ?? "…" }}</span>
       <NTag size="small" round :bordered="false" :type="ov?.root.source === 'env_var' ? 'info' : 'default'">
-        {{ ov?.root.source === "env_var" ? "CLAUDE_CONFIG_DIR" : "默认位置" }}
+        {{ ov?.root.source === "env_var" ? t("header.source.env") : t("header.source.default") }}
       </NTag>
     </div>
     <div class="chrome-right">
       <NTag size="small" round :bordered="false" :type="ov?.cli ? 'success' : 'error'">
-        {{ ov?.cli ? `CLI ${ov.cli.version ?? "版本未知"}` : "未找到 claude CLI" }}
+        {{ ov?.cli ? t("header.cli.found", { version: ov.cli.version ?? t("header.cli.versionUnknown") }) : t("header.cli.missing") }}
       </NTag>
       <NTag size="small" round :bordered="false" :type="ov?.self_check.migration_enabled ? 'success' : 'warning'">
-        {{ ov?.self_check.migration_enabled ? "编码自校验通过" : "编码自校验未通过" }}
+        {{ ov?.self_check.migration_enabled ? t("header.selfcheck.ok") : t("header.selfcheck.bad") }}
       </NTag>
       <span v-if="ov?.scan" class="scan-info">
-        {{ ov.scan_is_cached ? "上次扫描" : "本次扫描" }} {{ formatRelative(ov.scan.scanned_at_ms) }} · 合计
+        {{ ov.scan_is_cached ? t("header.scan.last") : t("header.scan.this") }} {{ formatRelative(ov.scan.scanned_at_ms) }} · {{ t("header.scan.total") }}
         <b class="mono">{{ formatBytes(ov.scan.root_total_bytes) }}</b>
       </span>
-      <span v-else class="scan-info">尚未扫描</span>
+      <span v-else class="scan-info">{{ t("header.scan.none") }}</span>
       <NButton size="small" type="primary" :loading="store.scanning" @click="store.refresh()">
-        {{ store.scanning ? "扫描中…" : "重新扫描" }}
+        {{ store.scanning ? t("header.scanning") : t("header.rescan") }}
       </NButton>
+      <NButtonGroup size="small" class="lang">
+        <NButton :type="locale === 'zh' ? 'primary' : 'default'" :secondary="locale === 'zh'" @click="setLocale('zh')">中文</NButton>
+        <NButton :type="locale === 'en' ? 'primary' : 'default'" :secondary="locale === 'en'" @click="setLocale('en')">EN</NButton>
+      </NButtonGroup>
     </div>
     <div v-if="store.scanning" class="progress">
       <NProgress type="line" :percentage="pct" :show-indicator="false" :height="3" :border-radius="0" />
       <span v-if="store.progress" class="progress-text mono">
-        scanning {{ store.progress.current }} ({{ store.progress.done }}/{{ store.progress.total }})
+        {{ t("header.progress", { current: store.progress.current, done: store.progress.done, total: store.progress.total }) }}
       </span>
     </div>
   </header>
@@ -78,6 +83,7 @@ const pct = computed(() => (store.progress && store.progress.total > 0 ? Math.ro
 }
 .scan-info { color: var(--text); opacity: 0.75; font-size: 12px; white-space: nowrap; }
 .scan-info b { color: #fafafa; font-weight: 600; }
+.lang { margin-left: 4px; }
 .progress { position: absolute; left: 0; right: 0; bottom: -1px; }
 .progress-text { position: absolute; right: 16px; bottom: 6px; font-size: 11px; color: var(--muted); }
 </style>
