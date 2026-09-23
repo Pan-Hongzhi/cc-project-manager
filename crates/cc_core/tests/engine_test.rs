@@ -72,6 +72,7 @@ fn full_refresh_assembles_everything_and_quick_overview_reuses_cache() {
     let eng2 = Engine::new(f.root.clone(), data_dir);
     let quick = eng2.quick_overview(&NoProcess, &NoCli);
     assert!(quick.scan_is_cached);
+    assert!(quick.cleanup_preview.is_some(), "快速视图要带出上次的清扫模拟结果");
     assert_eq!(quick.scan.as_ref().unwrap().root_total_bytes, ov.scan.as_ref().unwrap().root_total_bytes);
     let p2 = quick.projects.iter().find(|p| p.id == key).unwrap();
     assert!(p2.running.is_none(), "进程探测说没进程 → 不算运行中");

@@ -140,7 +140,8 @@ impl Engine {
                 }
             }
         }
-        self.assemble(projects, check, sessions, config_error, scan, None, runner, true)
+        let preview = self.scan_cache.last_cleanup_preview.clone();
+        self.assemble(projects, check, sessions, config_error, scan, preview, runner, true)
     }
 
     /// 全量刷新：扫描 + usage + 清扫模拟，并保存缓存。
@@ -156,6 +157,7 @@ impl Engine {
             }
         }
         let preview = simulate_cleanup(&self.root.root, scan_result.cleanup_days, now);
+        self.scan_cache.last_cleanup_preview = Some(preview.clone());
         let _ = save_json(&self.data_dir.join("cache").join("scan.json"), &self.scan_cache);
         let _ = save_json(&self.data_dir.join("cache").join("usage.json"), &self.usage_cache);
         self.assemble(projects, check, sessions, config_error, Some(scan_result), Some(preview), runner, false)

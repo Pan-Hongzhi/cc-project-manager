@@ -161,11 +161,14 @@ pub struct ScanCache {
     pub schema_version: u32,
     pub top_level: BTreeMap<String, TopLevelCache>,
     pub last_result: Option<ScanResult>,
+    /// 上次全量刷新时的清扫模拟结果，供快速视图直接展示（模拟需要再遍历一次磁盘）
+    #[serde(default)]
+    pub last_cleanup_preview: Option<CleanupPreview>,
 }
 
 impl Default for ScanCache {
     fn default() -> Self {
-        ScanCache { schema_version: SCAN_SCHEMA_VERSION, top_level: BTreeMap::new(), last_result: None }
+        ScanCache { schema_version: SCAN_SCHEMA_VERSION, top_level: BTreeMap::new(), last_result: None, last_cleanup_preview: None }
     }
 }
 
