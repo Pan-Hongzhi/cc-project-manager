@@ -12,8 +12,9 @@
 
 ## 文档
 
-- 需求：`CC Project Manager（Windows）需求规格.md`
-- 设计：`CC Project Manager（Windows）软件设计.md`
+- 使用手册：`docs/CC Project Manager（Windows）使用手册.md`
+- 需求：`docs/CC Project Manager（Windows）需求规格.md`
+- 设计：`docs/CC Project Manager（Windows）软件设计.md`
 - 计划：`docs/superpowers/plans/`
 
 ## 验收
