@@ -1,10 +1,10 @@
 # CC Project Manager（Windows）使用手册
 
-适用版本：**M1（只读版）0.1.0** · 2026-09-23
+适用版本：**0.1.0（只读版）** · 2026-09-23
 
 CC Project Manager 是一个 Windows 桌面小工具，用来看清 Claude Code（下称 CC）在本机留下的项目状态：哪些项目最近在用、各占多少空间、用了多少 token、哪些是孤儿或残留数据。
 
-**M1 版本只读，不会修改、移动或删除 `.claude` 目录里的任何文件。** 删除项目（purge）、记忆迁移、导出导入等写操作属于后续版本。
+**当前版本只读，不会修改、移动或删除 `.claude` 目录里的任何文件。** 删除项目（purge）、记忆迁移、导出导入等写操作属于后续版本。
 
 ---
 
@@ -29,18 +29,19 @@ CC Project Manager 是一个 Windows 桌面小工具，用来看清 Claude Code�
 
 ### 2.1 直接运行 exe（推荐）
 
-1. 找到 `target\release\cc-project-manager.exe`（约 9 MB）。
+1. 从 GitHub Releases 下载 `cc-project-manager.exe`（约 9 MB）；自己构建的话，产物在 `target\release\cc-project-manager.exe`。
 2. 双击运行，或把它拷到任意位置再运行。不需要安装，只依赖 Windows 11 自带的 WebView2。
 3. 第一次启动会自动做一次全量扫描，几秒后界面出现数据。
 
-也可以用安装包：`target\release\bundle\nsis\CC Project Manager_0.1.0_x64-setup.exe`。
+也可以用安装包 `CC Project Manager_0.1.0_x64-setup.exe`（自行构建时在 `target\release\bundle\nsis\`）。
 
 ### 2.2 开发模式运行
 
 在项目目录打开一个**新的** PowerShell 窗口：
 
 ```powershell
-cd C:\Users\alice\Desktop\work\win_project\cc-project-manager
+cd <项目目录>
+npm install
 npm run tauri dev
 ```
 
@@ -200,7 +201,7 @@ npm run tauri build
 状态栏显示「上次扫描 N 前」时是缓存结果。点「重新扫描」即可，约 3 秒。
 
 **CLI 标签是红色「未找到 claude CLI」？**
-工具通过 `where claude` 查找命令，再退回 `%USERPROFILE%\.local\bin\claude.exe`。如果 CC 装在别处，M1 只影响诊断页展示，后续删除功能会依赖它。
+工具通过 `where claude` 查找命令，再退回 `%USERPROFILE%\.local\bin\claude.exe`。如果 CC 装在别处，当前只影响诊断页展示和「新会话 / 恢复会话」按钮，后续删除功能会依赖它。
 
 **编码自校验显示「未通过」？**
 到诊断页看「无法解释的目录」清单。通常是官方改了编码规则，或 `projects/` 下被手动放了东西。只读功能不受影响。
@@ -230,4 +231,4 @@ CC 升级后目录命名规则变了，旧目录留在原地。本版本只展�
 | CC 配置文件 | `%USERPROFILE%\.claude.json` |
 | 需求规格 | `docs\CC Project Manager（Windows）需求规格.md` |
 | 软件设计 | `docs\CC Project Manager（Windows）软件设计.md` |
-| 验收记录 | `docs\acceptance\2026-09-22-m1-readonly.md` |
+| 项目说明 | `README.md`（中文）、`README.en.md`（English） |
